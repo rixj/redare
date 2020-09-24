@@ -17,6 +17,7 @@
   "dependencies": {
     "body-parser": "^1.19.0",
     "csvtojson": "^2.0.10",
+    "exceljs": "^4.1.1",
     "express": "^4.17.1",
     "google-search-results-nodejs": "^2.0.0",
     "mysql": "^2.18.1"

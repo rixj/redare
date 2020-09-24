@@ -1,8 +1,7 @@
 // node ./app/parser/csv_to_db.js
 const csvFilePath = './app/files/Mintel_Test_Data.csv'
 const csv = require('csvtojson')
-//const sql = require('./app/models/db.js');
-const sql = require('/Users/Danielle/Documents/redareapp/redare/app/models/db.js');
+const sql = require('./app/models/db.js');
 
 const parserParameters = {
     includeColumns:/(Product|Product Description|Category|Sub-Category|Bar Code|Production Code|Claim Category|Claims|Package Type|Package Material|Package Material (Secondary)|Package Type (Secondary)|Location of Manufacture|Import Status|Ultimate Company|Manufacturer|Ingredients (Standard form))/,
@@ -40,11 +39,16 @@ csv(parserParameters)
             (err, results, fields) => { 
             if (err) { 
                 console.log( 
-    "Unable to insert item at row ", i + 1); 
+                "Unable to insert item at row ", i + 1); 
                 return console.log(err); 
             } 
-        }); 
+        });
     } 
-    console.log( 
-"All items stored into database successfully"); 
+    console.log("All items stored into the database successfully."); 
+    sql.end(function(err) {
+        if (err) {
+        return console.log('error:' + err.message);
+        }
+        console.log('Closed the database connection.');
+      });
 })
