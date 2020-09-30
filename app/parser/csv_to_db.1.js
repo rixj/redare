@@ -5,7 +5,7 @@ const csv = require('csvtojson')
 const sql = require('/Users/Danielle/Documents/redareapp/redare/app/models/db.js');
 
 const parserParameters = {
-    includeColumns:/(Product|Product Description|Category|Sub-Category|Bar Code|Production Code|Claim Category|Claims|Package Type|Package Material|Package Material (Secondary)|Package Type (Secondary)|Location of Manufacture|Import Status|Ultimate Company|Manufacturer|Ingredients (Standard form))/,
+    includeColumns:/(Product|Product Description|Category|Sub-Category|Bar Code|Production Code|Claim Category|Claims|Package Type|Package Material|Package Material (Secondary)|Package Type (Secondary)|Location of Manufacture|Import Status|Company|Ultimate Company|Manufacturer|Ingredients (Standard form))/,
 }
 
 csv(parserParameters)
@@ -26,13 +26,14 @@ csv(parserParameters)
         package_type_2ndary = source[i]["Package Type (Secondary)"],
         location_of_manufacture = source[i]["Location of Manufacture"],
         import_status = source[i]["Import Status"],
+        company = source[i]["Company"],
         ultimate_company = source[i]["Ultimate Company"],
         manufacturer = source[i]["Manufacturer"],
         ingredients = source[i]["Ingredients (Standard form)"]
   
         var insertStatement =  
-        `INSERT INTO mintel(product, product_description, category, subcategory, barcode, production_code, claim_category, claims, package_type, package_material, package_material_2ndary, package_type_2ndary, location_of_manufacture, import_status, ultimate_company, manufacturer, ingredients) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`; 
-        var items = [product, product_description, category, subcategory, barcode, production_code, claim_category, claims, package_type, package_material, package_material_2ndary, package_type_2ndary, location_of_manufacture, import_status, ultimate_company, manufacturer, ingredients]; 
+        `INSERT INTO mintel(product, product_description, category, subcategory, barcode, production_code, claim_category, claims, package_type, package_material, package_material_2ndary, package_type_2ndary, location_of_manufacture, import_status, company, ultimate_company, manufacturer, ingredients) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`; 
+        var items = [product, product_description, category, subcategory, barcode, production_code, claim_category, claims, package_type, package_material, package_material_2ndary, package_type_2ndary, location_of_manufacture, import_status, company, ultimate_company, manufacturer, ingredients]; 
   
         // Inserting data of current row 
         // into database 
@@ -43,8 +44,14 @@ csv(parserParameters)
     "Unable to insert item at row ", i + 1); 
                 return console.log(err); 
             } 
-        }); 
+        });
     } 
-    console.log( 
-"All items stored into database successfully"); 
+    console.log("All items stored into database successfully.");
+        
+    sql.end(function(err) {
+        if (err) {
+            return console.log("error:" + err.message);
+        }
+        console.log("Closed the database connection.");
+        });
 })
