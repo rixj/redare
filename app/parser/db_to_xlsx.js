@@ -33,10 +33,10 @@ var rows2 =[
 worksheet2.addRows(rows2);
 
 // SHEET 3 Hard Surface Care
+let worksheet3 = workbook.addWorksheet('Hard Surface Care'); //creating worksheet
 sql.query("SELECT * FROM mintel WHERE category = 'Hard Surface Care' LIMIT 0,20", function(err, blob, fields) {
     const jsonMintel = JSON.parse(JSON.stringify(blob));
-    console.log(jsonMintel);
-    let worksheet3 = workbook.addWorksheet('Hard Surface Care'); //creating worksheet
+    //console.log(jsonMintel);
     worksheet3.columns = [
         { header: 'id', key: 'barcode'},
         { header: 'manufacturer', key: 'manufacturer'},
@@ -47,7 +47,12 @@ sql.query("SELECT * FROM mintel WHERE category = 'Hard Surface Care' LIMIT 0,20"
         //{ header: 'displayname', key: 'displayname'},
     ];
     worksheet3.addRows(jsonMintel);
+    // Write to File
+workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx")
+.then(function() {
+    console.log("File saved!");
 });
+
 
 // SHEET 4 Dairy
 // sql.query("SELECT * FROM mintel WHERE category = 'Dairy'", function(err, blob, fields) {
@@ -61,10 +66,7 @@ sql.query("SELECT * FROM mintel WHERE category = 'Hard Surface Care' LIMIT 0,20"
 //     worksheet.addRows(jsonMintel);
 // }); 
 
-// Write to File
-workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx")
-.then(function() {
-    console.log("File saved!");
+
 
 sql.end(function(err) {
 if (err) {
