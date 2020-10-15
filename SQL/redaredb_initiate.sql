@@ -60,13 +60,15 @@ CREATE TABLE rds_product(
 	company NVARCHAR(100),
 	ultimate_company NVARCHAR(100),
 	brand NVARCHAR(200),
+    market NVARCHAR(100),
 	name NVARCHAR(1000), -- product
 	displayname NVARCHAR(1000), -- brand + product
 	size NVARCHAR(200),
 	subgroup_1 NVARCHAR(200),
 	subgroup_2 NVARCHAR(200),
-	market NVARCHAR(100),
+    product_description NVARCHAR(2000),
 	imagelinks NVARCHAR(4000), -- image_links
+    category NVARCHAR(200),
 	PRIMARY KEY (id)
 );
 
