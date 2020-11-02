@@ -5,6 +5,8 @@ SELECT *  FROM rds_product
 
 SELECT *  FROM mintel WHERE category LIKE '%HARD%'
 CALL UpdateMintel
+
+
 */
 DELIMITER //
 CREATE PROCEDURE UpdateMintel()

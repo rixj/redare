@@ -4,7 +4,7 @@ const sql = require("../models/db.js");
 
 let workbook = new excel.Workbook();
 
-function static_sheet() {
+function sheetStatic() {
   return new Promise(function(resolve, reject) {
     // SHEET 0 Metadata
     let worksheet0 = workbook.addWorksheet("Metadata");
@@ -35,21 +35,33 @@ function static_sheet() {
   });
 }
 
-function hard_surface_sheet() {
+function sheetSurface() {
   return new Promise(function(resolve, reject) {
     // SHEET 3 Hard Surface Care
     let worksheet3 = workbook.addWorksheet("Hard Surface Care"); //creating worksheet
     sql.query(
-      "SELECT * FROM mintel WHERE category = 'Hard Surface Care' LIMIT 0,20",
+        "SELECT * FROM mintel WHERE category = 'Hard Surface Care'",
+        function(err, blob, fields) {
+          const jsonMintel = JSON.parse(JSON.stringify(blob));
+          worksheet3.addRows(jsonMintel);
+          // console.log(jsonMintel);
+          resolve();
+        }
+      );
+    sql.query(
+      "SELECT * FROM mintel WHERE category = 'Hard Surface Care'",
       function(err, blob, fields) {
         const jsonMintel = JSON.parse(JSON.stringify(blob));
+
+
         worksheet3.columns = [
           { header: "id", key: "barcode" },
+          { header: "name", key: "name" },
+          { header: "brand", key: "brand" },
+          { header: "market", key: "brand" },
           { header: "manufacturer", key: "manufacturer" },
           { header: "company", key: "company" },
           { header: "ultimate_company", key: "ultimate_company" },
-          { header: "brand", key: "brand" },
-          { header: "name", key: "name" }
           //{ header: 'displayname', key: 'displayname'},
         ];
         worksheet3.addRows(jsonMintel);
@@ -60,12 +72,12 @@ function hard_surface_sheet() {
   });
 }
 
-function dairy_sheet() {
+function sheetDairy() {
   return new Promise(function(resolve, reject) {
     // SHEET 4 Dairy
     let worksheet4 = workbook.addWorksheet("Dairy"); //creating worksheet
     sql.query(
-      "SELECT * FROM mintel WHERE category = 'Dairy' LIMIT 0,20",
+      "SELECT * FROM mintel WHERE category = 'Dairy'",
       function(err, blob, fields) {
         const jsonMintel = JSON.parse(JSON.stringify(blob));
         worksheet4.columns = [
@@ -85,9 +97,9 @@ function dairy_sheet() {
   });
 }
 
-static_sheet()
-  .then(result => hard_surface_sheet())
-  .then(newResult => dairy_sheet())
+sheetStatic()
+  .then(result => sheetSurface())
+  .then(newResult => sheetDairy())
   .then(finalResult => {
     workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx").then(function() {
       console.log("File saved!");

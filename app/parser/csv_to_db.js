@@ -1,8 +1,7 @@
 // node ./app/parser/csv_to_db.js
 const csvFilePath = './app/files/Mintel_Test_Data.csv'
 const csv = require('csvtojson')
-//const sql = require('./app/models/db.js');
-const sql = require('/Users/Danielle/Documents/redareapp/redare/app/models/db.js');
+const sql = require('../models/db.js');
 
 const parserParameters = {
     includeColumns:/(Product|Product Description|Brand|Category|Sub-Category|Bar Code|Production Code|Claim Category|Claims|Total Pack Size .+\)|Packaging Units|Package Type|Package Material|Package Material (Secondary)|Package Type (Secondary)|Market|Location of Manufacture|Import Status|Company|Ultimate Company|Manufacturer|All Image Links|Ingredients (Standard form))/,
