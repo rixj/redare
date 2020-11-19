@@ -3,6 +3,9 @@ const excel = require("exceljs"); // npm install --save exceljs
 const sql = require("../models/db.js");
 
 let workbook = new excel.Workbook();
+let lengthdairy = 0;
+let lengthhard = 0;
+let offsethard = 10;
 
 function sheetStatic() {
   return new Promise(function(resolve, reject) {
@@ -18,8 +21,18 @@ function sheetStatic() {
     let worksheet1 = workbook.addWorksheet("Experts");
     var rows1 = [
       ["name", "info", "expertise", ""],
-      ["Jason Czarnezki","An expert on natural resources law, environmentalism, food policy, sustainable public procurement, private environmental governance.",1,1],
-      ["Steven Lord","An expert on the sustainability and resilience of complex systems. Senior researcher in the Environmental Change Institute at the University of Oxford.",1,1]
+      [
+        "Jason Czarnezki",
+        "An expert on natural resources law, environmentalism, food policy, sustainable public procurement, private environmental governance.",
+        1,
+        1
+      ],
+      [
+        "Steven Lord",
+        "An expert on the sustainability and resilience of complex systems. Senior researcher in the Environmental Change Institute at the University of Oxford.",
+        1,
+        1
+      ]
     ];
     worksheet1.addRows(rows1);
 
@@ -27,7 +40,10 @@ function sheetStatic() {
     let worksheet2 = workbook.addWorksheet("Products");
     var rows2 = [
       ["name", "info"],
-      ["Hard Surface Care","Household cleaning sprays available for retail purchase in Sweden"],
+      [
+        "Hard Surface Care",
+        "Household cleaning sprays available for retail purchase in Sweden"
+      ],
       ["Dairy", "Dairy products for sale in Sweden"]
     ];
     worksheet2.addRows(rows2);
@@ -35,71 +51,81 @@ function sheetStatic() {
   });
 }
 
-function sheetSurface() {
+function sheetProduct(tabName, query) {
   return new Promise(function(resolve, reject) {
-    // SHEET 3 Hard Surface Care
-    let worksheet3 = workbook.addWorksheet("Hard Surface Care"); //creating worksheet
+    let worksheet3 = workbook.addWorksheet(tabName);
     sql.query(
-        "SELECT * FROM mintel WHERE category = 'Hard Surface Care'",
-        function(err, blob, fields) {
-          const jsonMintel = JSON.parse(JSON.stringify(blob));
-          worksheet3.addRows(jsonMintel);
-          // console.log(jsonMintel);
-          resolve();
-        }
-      );
-    sql.query(
-      "SELECT * FROM mintel WHERE category = 'Hard Surface Care'",
-      function(err, blob, fields) {
+      query,
+    function(
+        err,
+        blob,
+        fields
+      ) {
         const jsonMintel = JSON.parse(JSON.stringify(blob));
-
-
+        lengthhard = Object.keys(jsonMintel).length;
         worksheet3.columns = [
+          { header: "sql_id", key: "id" },
           { header: "id", key: "barcode" },
           { header: "name", key: "name" },
           { header: "brand", key: "brand" },
           { header: "market", key: "brand" },
           { header: "manufacturer", key: "manufacturer" },
           { header: "company", key: "company" },
-          { header: "ultimate_company", key: "ultimate_company" },
+          { header: "ultimate_company", key: "ultimate_company" }
           //{ header: 'displayname', key: 'displayname'},
         ];
+        worksheet3.addRows([""]);
         worksheet3.addRows(jsonMintel);
-        // console.log(jsonMintel);
         resolve();
       }
     );
-  });
-}
-
-function sheetDairy() {
-  return new Promise(function(resolve, reject) {
-    // SHEET 4 Dairy
-    let worksheet4 = workbook.addWorksheet("Dairy"); //creating worksheet
+    let cols;
     sql.query(
-      "SELECT * FROM mintel WHERE category = 'Dairy'",
+      "SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM comp_info c",
       function(err, blob, fields) {
         const jsonMintel = JSON.parse(JSON.stringify(blob));
-        worksheet4.columns = [
-          { header: "id", key: "barcode" },
-          { header: "manufacturer", key: "manufacturer" },
-          { header: "company", key: "company" },
-          { header: "ultimate_company", key: "ultimate_company" },
-          { header: "brand", key: "brand" },
-          { header: "name", key: "name" }
-          //{ header: 'displayname', key: 'displayname'},
-        ];
-        worksheet4.addRows(jsonMintel);
-        // console.log(jsonMintel);
+        let row = worksheet3.getRow(1);
+        let rowSql = worksheet3.getRow(2);
+        cols = row.cellCount;
+        var index = cols + 1;
+        for (var key in jsonMintel) {
+          if (jsonMintel.hasOwnProperty(key)) {
+            row.getCell(index).value = jsonMintel[key].Category;
+            rowSql.getCell(index).value = jsonMintel[key].id;
+            index++;
+          }
+        }
         resolve();
       }
     );
+    sql.query("SELECT * FROM mintel_comp", function(err, blob, fields) {
+      const jsonMintel = JSON.parse(JSON.stringify(blob));
+      let rowCount = worksheet3.rowCount;
+      for (var key in jsonMintel) {
+        for (var rds = 2; rds < rowCount; rds++) {
+          var a = worksheet3.getRow(rds);
+          if (a.getCell(1).value == jsonMintel[key].mintel_id) {
+            a.getCell(cols + jsonMintel[key].attribute_id).value = 1;
+          }
+        }
+      }
+      worksheet3.spliceRows(2, 1);
+      worksheet3.spliceColumns(1, 1);
+      resolve();
+    });
   });
 }
 
 sheetStatic()
-  .then(result => sheetSurface())
-  .then(newResult => sheetDairy())
+  .then(result =>
+    sheetProduct(
+      "Hard Surface Care",
+      "SELECT * FROM mintel WHERE category = 'Hard Surface Care'"
+    )
+  )
+  .then(newResult =>
+    sheetProduct("Dairy", "SELECT * FROM mintel WHERE category = 'Dairy'")
+  )
   .then(finalResult => {
     workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx").then(function() {
       console.log("File saved!");
