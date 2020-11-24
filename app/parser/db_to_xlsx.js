@@ -3,9 +3,6 @@ const excel = require("exceljs"); // npm install --save exceljs
 const sql = require("../models/db.js");
 
 let workbook = new excel.Workbook();
-let lengthdairy = 0;
-let lengthhard = 0;
-let offsethard = 10;
 
 function sheetStatic() {
   return new Promise(function(resolve, reject) {
@@ -54,36 +51,37 @@ function sheetStatic() {
 function sheetProduct(tabName, query) {
   return new Promise(function(resolve, reject) {
     let worksheet3 = workbook.addWorksheet(tabName);
-    sql.query(
-      query,
-    function(
-        err,
-        blob,
-        fields
-      ) {
-        const jsonMintel = JSON.parse(JSON.stringify(blob));
-        lengthhard = Object.keys(jsonMintel).length;
-        worksheet3.columns = [
-          { header: "sql_id", key: "id" },
-          { header: "id", key: "barcode" },
-          { header: "name", key: "name" },
-          { header: "brand", key: "brand" },
-          { header: "market", key: "brand" },
-          { header: "manufacturer", key: "manufacturer" },
-          { header: "company", key: "company" },
-          { header: "ultimate_company", key: "ultimate_company" }
-          //{ header: 'displayname', key: 'displayname'},
-        ];
-        worksheet3.addRows([""]);
-        worksheet3.addRows(jsonMintel);
-        resolve();
-      }
-    );
+    sql.query(query, function(err, blob, fields) {
+      const jsonMintel = JSON.parse(JSON.stringify(blob));
+      lengthhard = Object.keys(jsonMintel).length;
+      worksheet3.columns = [
+        { header: "sql_id", key: "id" },
+        { header: "id", key: "rds_id" },
+        { header: "name", key: "name" },
+        { header: "brand", key: "brand" },
+        { header: "market", key: "brand" },
+        { header: "manufacturer", key: "manufacturer" },
+        { header: "company", key: "company" },
+        { header: "ultimate_company", key: "ultimate_company" },
+        { header: 'displayname', key: 'displayname'},
+        { header: 'size', key: 'size'},
+        { header: 'imagelink', key: 'imagelinks'},
+        { header: 'imagefile', key: 'imagefile'},
+        { header: 'subgroup_1', key: 'subgroup_1'},
+        { header: 'subgroup_2', key: 'subgroup_2'},
+        { header: 'product_description', key: 'product_description'},
+      ];
+      worksheet3.addRows([""]);
+      worksheet3.addRows(jsonMintel);
+      resolve();
+    });
     let cols;
     sql.query(
       "SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM comp_info c",
       function(err, blob, fields) {
         const jsonMintel = JSON.parse(JSON.stringify(blob));
+        if (tabName === "Dairy Drinks") {
+        }
         let row = worksheet3.getRow(1);
         let rowSql = worksheet3.getRow(2);
         cols = row.cellCount;
@@ -118,13 +116,10 @@ function sheetProduct(tabName, query) {
 
 sheetStatic()
   .then(result =>
-    sheetProduct(
-      "Hard Surface Care",
-      "SELECT * FROM mintel WHERE category = 'Hard Surface Care'"
-    )
+    sheetProduct("Hard Surface Care","SELECT * FROM rds_product WHERE category = 'Hard Surface Care'")
   )
   .then(newResult =>
-    sheetProduct("Dairy", "SELECT * FROM mintel WHERE category = 'Dairy'")
+    sheetProduct("Dairy Drinks", "SELECT * FROM rds_product WHERE category = 'Dairy'")
   )
   .then(finalResult => {
     workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx").then(function() {
