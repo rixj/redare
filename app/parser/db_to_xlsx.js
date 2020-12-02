@@ -48,12 +48,19 @@ function sheetStatic() {
   });
 }
 
-function sheetProduct(tabName, query) {
+function sqlQuery(query) {
   return new Promise(function(resolve, reject) {
-    let worksheet3 = workbook.addWorksheet(tabName);
     sql.query(query, function(err, blob, fields) {
       const jsonMintel = JSON.parse(JSON.stringify(blob));
-      lengthhard = Object.keys(jsonMintel).length;
+      resolve(jsonMintel);
+    });
+  });
+}
+
+function sheetProduct(tabName, promiseProduct, infoLabel, infoValue) {
+  return new Promise(function(resolve, reject) {
+    // console.log(promiseProduct);
+    let worksheet3 = workbook.addWorksheet(tabName);
       worksheet3.columns = [
         { header: "sql_id", key: "id" },
         { header: "id", key: "rds_id" },
@@ -72,59 +79,60 @@ function sheetProduct(tabName, query) {
         { header: 'product_description', key: 'product_description'},
       ];
       worksheet3.addRows([""]);
-      worksheet3.addRows(jsonMintel);
-      resolve();
-    });
-    let cols;
-    sql.query(
-      "SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM comp_info c",
-      function(err, blob, fields) {
-        const jsonMintel = JSON.parse(JSON.stringify(blob));
-        if (tabName === "Dairy Drinks") {
+      const products = JSON.parse(JSON.stringify(promiseProduct));
+      // console.log(products);
+      worksheet3.addRows(promiseProduct);
+      // for (var key in promiseProduct) {
+      //   console.log(key);
+      // }
+      // console.log(promiseProduct[0]);
+      let cols;
+      let row = worksheet3.getRow(1);
+      let rowSql = worksheet3.getRow(2);
+      cols = row.cellCount;
+      var index = cols + 1;
+      for (var key in infoLabel) {
+        if (infoLabel.hasOwnProperty(key)) {
+          row.getCell(index).value = infoLabel[key].Category;
+          rowSql.getCell(index).value = infoLabel[key].id;
+          index++;
         }
-        let row = worksheet3.getRow(1);
-        let rowSql = worksheet3.getRow(2);
-        cols = row.cellCount;
-        var index = cols + 1;
-        for (var key in jsonMintel) {
-          if (jsonMintel.hasOwnProperty(key)) {
-            row.getCell(index).value = jsonMintel[key].Category;
-            rowSql.getCell(index).value = jsonMintel[key].id;
-            index++;
-          }
-        }
-        resolve();
       }
-    );
-    sql.query("SELECT * FROM mintel_comp", function(err, blob, fields) {
-      const jsonMintel = JSON.parse(JSON.stringify(blob));
       let rowCount = worksheet3.rowCount;
-      for (var key in jsonMintel) {
+      for (var key in infoValue) {
         for (var rds = 2; rds < rowCount; rds++) {
           var a = worksheet3.getRow(rds);
-          if (a.getCell(1).value == jsonMintel[key].mintel_id) {
-            a.getCell(cols + jsonMintel[key].attribute_id).value = 1;
+          if (a.getCell(1).value == infoValue[key].mintel_id) {
+            a.getCell(cols + infoValue[key].attribute_id).value = 1;
           }
         }
       }
       worksheet3.spliceRows(2, 1);
       worksheet3.spliceColumns(1, 1);
       resolve();
-    });
   });
 }
 
-sheetStatic()
-  .then(result =>
-    sheetProduct("Hard Surface Care","SELECT * FROM rds_product WHERE category = 'Hard Surface Care'")
-  )
-  .then(newResult =>
-    sheetProduct("Dairy Drinks", "SELECT * FROM rds_product WHERE category = 'Dairy'")
-  )
-  .then(finalResult => {
-    workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx").then(function() {
-      console.log("File saved!");
-    });
+function buildSheet(data){
+    sheetProduct("Hard Surface Care", data[0], data[2], data[3]).then(result =>{
+      sheetProduct("Dairy Drinks", data[1], data[2], data[3]).then(finalResult => {
+        workbook.xlsx.writeFile("./app/files/RDS_api_0000.xlsx").then(function() {
+          console.log("File saved!");
+        });
+      })
+    })
+}
+
+
+
+const promiseClean = sqlQuery("SELECT * FROM rds_product WHERE category = 'Hard Surface Care'");
+const promiseDairy = sqlQuery("SELECT * FROM rds_product WHERE category = 'Dairy'");
+const promiseCompInfoLabel = sqlQuery("SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM comp_info c");
+const promiseCompInfoValue = sqlQuery("SELECT * FROM mintel_comp");
+
+Promise.all([promiseClean, promiseDairy, promiseCompInfoLabel, promiseCompInfoValue])
+  .then(async (response) => {
+    buildSheet(response);
   })
   .finally(finalResult => {
     sql.end(function(err) {
