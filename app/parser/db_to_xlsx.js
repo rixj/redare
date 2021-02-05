@@ -79,13 +79,7 @@ function sheetProduct(tabName, promiseProduct, infoLabel, infoValue) {
         { header: 'product_description', key: 'product_description'},
       ];
       worksheet3.addRows([""]);
-      const products = JSON.parse(JSON.stringify(promiseProduct));
-      // console.log(products);
       worksheet3.addRows(promiseProduct);
-      // for (var key in promiseProduct) {
-      //   console.log(key);
-      // }
-      // console.log(promiseProduct[0]);
       let cols;
       let row = worksheet3.getRow(1);
       let rowSql = worksheet3.getRow(2);
@@ -102,7 +96,7 @@ function sheetProduct(tabName, promiseProduct, infoLabel, infoValue) {
       for (var key in infoValue) {
         for (var rds = 2; rds < rowCount; rds++) {
           var a = worksheet3.getRow(rds);
-          if (a.getCell(1).value == infoValue[key].mintel_id) {
+          if (a.getCell(1).value == infoValue[key].product_id) {
             a.getCell(cols + infoValue[key].attribute_id).value = 1;
           }
         }
@@ -127,8 +121,8 @@ function buildSheet(data){
 
 const promiseClean = sqlQuery("SELECT * FROM rds_product WHERE category = 'Hard Surface Care'");
 const promiseDairy = sqlQuery("SELECT * FROM rds_product WHERE category = 'Dairy'");
-const promiseCompInfoLabel = sqlQuery("SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM comp_info c");
-const promiseCompInfoValue = sqlQuery("SELECT * FROM mintel_comp");
+const promiseCompInfoLabel = sqlQuery("SELECT c.id, CONCAT(c.category,': ',c.model_criteria,': ',c.label) AS Category FROM attribute c");
+const promiseCompInfoValue = sqlQuery("SELECT * FROM product_attribute");
 
 Promise.all([promiseClean, promiseDairy, promiseCompInfoLabel, promiseCompInfoValue])
   .then(async (response) => {

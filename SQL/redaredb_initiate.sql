@@ -1,28 +1,30 @@
 /*
-CREATE DATABASE redare;
-USE redare;
-TRUNCATE `redare`.`mintel`
-SELECT * FROM `redare`.`mintel` 
-// run if tables already exist
-DROP TABLE IF EXISTS product_attribute;
-DROP TABLE IF EXISTS product_category;
-DROP TABLE IF EXISTS product;
-DROP TABLE IF EXISTS attribute;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS manufacturer;
-DROP TABLE IF EXISTS country;
+CREATE DATABASE redare
+USE redare
+SELECT * FROM mintel;
+SELECT * FROM rds_product;
+SELECT * FROM category;
+SELECT * FROM country;
+SELECT * FROM manufacturer;
+SELECT * FROM product_attribute;
+SELECT * FROM attribute_keyword;
+SELECT * FROM attribute;
+SELECT * FROM person;
+SELECT * FROM expert;
+SELECT * FROM rank;
+
 DROP TABLE IF EXISTS mintel;
 DROP TABLE IF EXISTS rds_product;
+DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS country;
+DROP TABLE IF EXISTS manufacturer;
+DROP TABLE IF EXISTS product_attribute;
+DROP TABLE IF EXISTS attribute_keyword;
+DROP TABLE IF EXISTS attribute;
+DROP TABLE IF EXISTS person;
+DROP TABLE IF EXISTS expert;
+DROP TABLE IF EXISTS rank;
 */
-DROP TABLE IF EXISTS mintel;
-DROP TABLE IF EXISTS rds_product;
-DROP TABLE IF EXISTS attribute;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS country;
-DROP TABLE IF EXISTS manufacturer;
-DROP TABLE IF EXISTS product;
-DROP TABLE IF EXISTS product_attribute;
-DROP TABLE IF EXISTS product_category;
 
 CREATE TABLE mintel(
 	id INT NOT NULL AUTO_INCREMENT,
@@ -72,15 +74,6 @@ CREATE TABLE rds_product(
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE attribute(
-	id INT NOT NULL AUTO_INCREMENT,
-	name NVARCHAR(100),
-	model_criteria NVARCHAR(100),
-	label NVARCHAR(255),
-	links VARCHAR(4000),
-	PRIMARY KEY (id)
-);
-
 CREATE TABLE category(
 	id INT NOT NULL AUTO_INCREMENT,
 	name NVARCHAR(255),
@@ -106,32 +99,53 @@ CREATE TABLE manufacturer(
     FOREIGN KEY (country_hq) REFERENCES country(id)
 );
 
-CREATE TABLE product(
-	id INT NOT NULL AUTO_INCREMENT,
-	barcode BIGINT,
-	image_file_ext VARCHAR(10),
-	manufacturer_id INT,
-	brand NVARCHAR(255),
-	name NVARCHAR(4000),
-	size NVARCHAR(100),
-	subgroup_1 NVARCHAR(100),
-	subgroup_2 NVARCHAR(100),
-	country_made_in INT,
-	product_description NVARCHAR(4000),
-	image_links VARCHAR(4000),
-	PRIMARY KEY (id),
-    CONSTRAINT fk_country FOREIGN KEY (country_made_in) REFERENCES country(id),
-	CONSTRAINT fk_manufacturer FOREIGN KEY (manufacturer_id) REFERENCES manufacturer(id)
-);
-
-CREATE TABLE product_category(
-  product_id INT NOT NULL REFERENCES product(id),
-  category_id INT NOT NULL REFERENCES category(id),
-  CONSTRAINT pk_product_category PRIMARY KEY (product_id, category_id)
-);
-
 CREATE TABLE product_attribute(
 	product_id INT NOT NULL REFERENCES product(id),
 	attribute_id INT NOT NULL REFERENCES attribute(id),
 	CONSTRAINT pk_product_attribute PRIMARY KEY (product_id, attribute_id)
 );
+
+CREATE TABLE attribute_keyword(
+	attribute_id INT NOT NULL REFERENCES attribute(id),
+    keyword NVARCHAR(400),
+    FOREIGN KEY (attribute_id) REFERENCES attribute(id)
+);
+
+CREATE TABLE attribute (
+	id INT NOT NULL AUTO_INCREMENT
+	,category VARCHAR(100)
+	,model_criteria VARCHAR(100)
+	,label VARCHAR(100)
+	,links VARCHAR(1000)
+    ,mintel VARCHAR(100)
+	,PRIMARY KEY (id)
+	);
+
+CREATE TABLE person (
+	id INT NOT NULL AUTO_INCREMENT
+	,first_name VARCHAR(200)
+	,last_name  VARCHAR(200)
+	,address VARCHAR(1000)
+	,phone VARCHAR(200)
+    ,username VARCHAR(200)
+    ,email VARCHAR(320)
+	,PRIMARY KEY (id)
+	);
+
+CREATE TABLE expert (
+	id INT NOT NULL AUTO_INCREMENT
+	,person_id INT
+	,PRIMARY KEY (id)
+	);
+
+/*
+the rds_id is redundant. it should not need to print the barcode in two different tables. but maybe it should if Steven is writing directly to the db.
+*/
+CREATE TABLE rank (
+	id INT NOT NULL AUTO_INCREMENT
+	,rds_id NVARCHAR(1000)
+    ,rank INT
+    ,expert_id INT
+    ,FOREIGN KEY (expert_id) REFERENCES expert(id)
+	,PRIMARY KEY (id)
+	);

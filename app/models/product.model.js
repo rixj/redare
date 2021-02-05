@@ -8,7 +8,7 @@ const Product = function(product) {
 };
 
 Product.create = (newProduct, result) => {
-  sql.query("INSERT INTO product SET ?", newProduct, (err, res) => {
+  sql.query("INSERT INTO rds_product SET ?", newProduct, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(err, null);
@@ -21,7 +21,7 @@ Product.create = (newProduct, result) => {
 };
 
 Product.findById = (productId, result) => {
-  sql.query(`SELECT * FROM product WHERE id = ${productId}`, (err, res) => {
+  sql.query(`SELECT r.*, rank.rank, rank.expert_id FROM rds_product r LEFT JOIN rank on r.rds_id = rank.rds_id WHERE r.id = ${productId}`, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(err, null);
@@ -40,7 +40,7 @@ Product.findById = (productId, result) => {
 };
 
 Product.getAll = result => {
-  sql.query("SELECT * FROM product", (err, res) => {
+  sql.query("SELECT * FROM rds_product", (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(null, err);
@@ -54,7 +54,7 @@ Product.getAll = result => {
 
 Product.updateById = (id, product, result) => {
   sql.query(
-    "UPDATE products SET barcode = ?, name = ?, brand = ? WHERE id = ?",
+    "UPDATE rds_product SET barcode = ?, name = ?, brand = ? WHERE id = ?",
     [product.barcode, product.name, product.brand, id],
     (err, res) => {
       if (err) {
@@ -76,7 +76,7 @@ Product.updateById = (id, product, result) => {
 };
 
 Product.remove = (id, result) => {
-  sql.query("DELETE FROM product WHERE id = ?", id, (err, res) => {
+  sql.query("DELETE FROM rds_product WHERE id = ?", id, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(null, err);
@@ -95,7 +95,7 @@ Product.remove = (id, result) => {
 };
 
 Product.removeAll = result => {
-  sql.query("DELETE FROM product", (err, res) => {
+  sql.query("DELETE FROM rds_product", (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(null, err);

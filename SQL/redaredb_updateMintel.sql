@@ -3,6 +3,7 @@ DROP PROCEDURE IF EXISTS UpdateMintel;
 TRUNCATE rds_product
 SELECT *  FROM rds_product
 
+use redare
 SELECT *  FROM mintel WHERE category LIKE '%HARD%'
 CALL UpdateMintel
 

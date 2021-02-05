@@ -18,7 +18,8 @@ exports.create = (req, res) => {
     subgroup_1: req.body.subgroup_1, 
     subgroup_2: req.body.subgroup_2, 
     country_made_in: req.body.country_made_in, 
-    product_description: req.body.product_description
+    product_description: req.body.product_description,
+    rank: req.body.rank
   });
 
   // Save Product in the database
